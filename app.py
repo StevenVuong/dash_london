@@ -14,7 +14,8 @@ app = dash.Dash(__name__)
 with open('./data/london_boroughs.json') as f:
     gjf = geojson.load(f)
 
-dfs = pd.read_excel('./data/gcse-results.xlsx', sheet_name="strong_9_5_pass")
+dfs = pd.read_csv('./data/gcse-results.csv')
+slider_dict={0:"2016-17", 1:"2017-18", 2:"2018-19"}
 # ------------------------------------------------------------------------------
 # App layout
 
@@ -22,15 +23,27 @@ app = dash.Dash()
 
 app.layout = html.Div([
 
-    dcc.Dropdown(id="slct_year",
-                 options=[
-                     {"label": "2016-17", "value": "2016-17"},
-                     {"label": "2017-18", "value": "2017-18"},
-                     {"label": "2018-19", "value": "2018-19"}],
-                 multi=False,
-                 value="2016-17",
-                 style={'width': "40%"}
-                 ),
+    html.Label("Select Year"),
+    dcc.Slider(id="slider_slct_year",
+        min=0,
+        max=2,
+        step=None,
+        marks={
+            0:"2016-17",
+            1:"2017-18",
+            2:"2018-19"
+        },
+        value=0
+        ),
+    
+    html.Label("Filter by Gender"),
+    dcc.RadioItems(id="slct_gender",
+                options=[
+                    {'label': 'All', 'value': 'all'},
+                    {'label': 'Males', 'value': 'male'},
+                    {'label': 'Females', 'value': 'female'}],
+                value='all'
+                ),
 
     html.Div(id='output_container', children=[]),
 
@@ -42,25 +55,28 @@ app.layout = html.Div([
 
 @app.callback(
     Output(component_id='results_map', component_property='figure'),
-    [Input(component_id='slct_year', component_property='value')]
+    [Input(component_id='slider_slct_year', component_property='value'),
+    Input(component_id='slct_gender', component_property='value')]
 )
-def update_graph(option_slctd):
+def update_graph(option_slctd_year, option_slctd_gender):
 
     gjff = gjf.copy()
     dff = dfs.copy()
+    option_slctd_year = slider_dict[option_slctd_year]
 
-    dff['Percentage'] = dff[option_slctd]
+    option_slctd_year = f"{option_slctd_year}-{option_slctd_gender}"
+    dff['Percentage'] = dff[option_slctd_year]
     #dff[option_slctd] = dff['Percentage (%)']
 
     fig = px.choropleth(dff, geojson=gjff, color="Percentage",
                         locations="Area", featureidkey="properties.name",
-                        title=f"Percentage of Pupils that achieved strong 9 to 5 pass grade in {option_slctd}",
+                        title=f"Percentage of {option_slctd_gender} Pupils that achieved strong 9 to 5 pass grade in {option_slctd_year}",
                         center={'lat':51.5074, 'lon':0.1277},
-                        color_continuous_scale="Blues",
+                        color_continuous_scale="Viridis",
                         hover_name="Area",
                         hover_data={
                             'Area':False,
-                            option_slctd:False
+                            option_slctd_year:False
                         }
                     )
     fig.update_geos(showcountries=False, 
