@@ -28,12 +28,9 @@ app.layout = html.Div([
         min=0,
         max=2,
         step=None,
-        marks={
-            0:"2016-17",
-            1:"2017-18",
-            2:"2018-19"
-        },
-        value=0
+        marks={0:"2016-17", 1:"2017-18", 2:"2018-19"},
+        value=0,
+        labelStyle={'display':'inline-block'}
         ),
     
     html.Label("Filter by Gender"),
@@ -42,7 +39,8 @@ app.layout = html.Div([
                     {'label': 'All', 'value': 'all'},
                     {'label': 'Males', 'value': 'male'},
                     {'label': 'Females', 'value': 'female'}],
-                value='all'
+                value='all',
+                labelStyle={'display':'inline-block'},
                 ),
 
     html.Div(id='output_container', children=[]),
